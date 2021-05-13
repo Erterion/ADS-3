@@ -2,87 +2,92 @@
 #include <string>
 #include "tstack.h"
 
-int priority(char c) {
+int pr(char c) {
     switch (c) {
-    case '(':
-        return 0;
-    case ')':
-        return 1;
-    case '+','-':
-        return 2;
-    case '*','/':
-        return 3;
-    default:
-        return -1;
+      case '(':
+          return 0;
+      case ')':
+          return 1;
+      case '+':
+      case '-':
+          return 2;
+      case '*':
+      case '/':
+          return 3;
+      default:
+          return -1;
     }
 }
 
 std::string infx2pstfx(std::string inf) {
-  TStack<char> stack1;
-    std::string stroka;
+    TStack<char> stack;
+    std::string res;
+
     for (int i = 0; i < inf.length(); i++) {
         if ((inf[i] >= '0') && (inf[i] <= '9')) {
-            stroka += inf[i];
-            stroka += ' ';
-        }
-        else if ((inf[i] == '(') || (priority(inf[i]) > priority(stack1.get())) || (stack1.isEmpty())) {
-            stack1.push(inf[i]);
-        }
-        else if (inf[i] == ')') {
-            while (!stack1.isEmpty() && stack1.get() != '(') {
-                stroka += stack1.get();
-                stroka += ' ';
-                stack1.pop();
+            res += inf[i];
+            res += ' ';
+        } else if (inf[i] == '(') {
+            stack.push(inf[i]);
+        } else if (pr(inf[i]) > pr(stack.get()) || stack.isEmpty()) {
+            stack.push(inf[i]);
+        } else if (inf[i] == ')') {
+            while (!stack.isEmpty() && stack.get() != '(') {
+                res += stack.get();
+                res += ' ';
+                stack.pop();
             }
-            if (stack1.get() == '(')
-                stack1.pop();
-        }
-        else {
-            while ((!stack1.isEmpty()) && (priority(stack1.get()) >= priority(inf[i]))) {
-                stroka = stack1.get();
-                stroka += ' ';
-                stack1.pop();
+
+            if (stack.get() == '(') {
+               stack.pop();
             }
-            stack1.push(inf[i]);
+        } else {
+            while (!stack.isEmpty() && pr(stack.get()) >= pr(inf[i])) {
+                res += stack.get();
+                res += ' ';
+                stack.pop();
+            }
+
+            stack.push(inf[i]);
         }
     }
-            while (!stack1.isEmpty()) {
-                stroka += stack1.get();
-                stroka += ' ';
-                stack1.pop();
-            }
-    return stroka;
-}
-  return std::string("");
+
+    while (!stack.isEmpty()) {
+        res += stack.get();
+        res += ' ';
+        stack.pop();
+    }
+
+    while (res[res.length() - 1] == ' ') {
+        res = res.substr(0, res.length()-1);
+    }
+
+    return res;
 }
 
 int eval(std::string pst) {
-  TStack<int> stack2;
-    int output;
+    TStack<int> stack;
+
     for (int i = 0; i < pst.length(); i++) {
         if ((pst[i] >= '0') && (pst[i] <= '9')) {
-            stack2.push(pst[i]- '0');
-        }
-        else
-            if (pst[i] != ' ') {
-                int a2 = stack2.get();
-                stack2.pop();
-                int a1 = stack2.get();
-                stack2.pop();
-                if (pst[i] == '-') {
-                    stack2.push(a1 - a2);
-                }
-                else if (pst[i] == '+') {
-                    stack2.push(a1 + a2);
-                }
-                else if (pst[i] == '*') {
-                    stack2.push(a1 * a2);
-                }
-                else {
-                    stack2.push(a1 / a2);
-                }
+            stack.push(pst[i] - '0');
+        } else if (pst[i] != ' ') {
+            int a = stack.get();
+            stack.pop();
+            int b = stack.get();
+            stack.pop();
+
+            if (pst[i] == '-') {
+                stack.push(b - a);
+            } else if (pst[i] == '+') {
+                stack.push(b + a);
+            } else if (pst[i] == '*') {
+                stack.push(b * a);
+            } else {
+                stack.push(b / a);
             }
+        }
     }
-    output = stack2.get();
-    return output;
+
+    return stack.get();
 }
